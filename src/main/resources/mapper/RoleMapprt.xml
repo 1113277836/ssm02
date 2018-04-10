@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwua.ssm.dao.RoleMapper">
+    <select id="query" parameterType="map" resultType="role">
+        SELECT * FROM role WHERE 1=1
+        <if test="roleName !=null">
+           AND roleName LIKE concat(concat('%',#{roleName}),'%')
+        </if>
+        <if test="roleCode !=null">
+           AND roleCode LIKE concat(concat('%',#{roleCode}),'%')
+        </if>
+        <if test="valid !=null">
+            AND valid=#{valid}
+        </if>
+        ORDER BY orders
+        <if test="row != null&amp;&amp;start != null">
+           LIMIT #{row},#{start}
+        </if>
+    </select>
+    <select id="getCount" parameterType="map" resultType="int">
+        SELECT COUNT(dbid) FROM role WHERE 1=1
+        <if test="roleName !=null">
+            AND roleName LIKE concat(concat('%',#{roleName}),'%')
+        </if>
+        <if test="roleCode !=null">
+            AND roleCode LIKE concat(concat('%',#{roleCode}),'%')
+        </if>
+        <if test="valid !=null">
+            AND valid =#{valid}
+        </if>
+    </select>
+    <insert id="doInsert" parameterType="role">
+        INSERT INTO role (roleName,roleCode,valid,orders) VALUES (#{roleName},#{roleCode},#{valid},#{orders})
+    </insert>
+    <update id="doUpdate" parameterType="role">
+        UPDATE role SET roleName=#{roleName},roleCode=#{roleCode},valid=#{valid},orders=#{orders} WHERE dbid=#{dbid}
+    </update>
+
+    <select id="queryByRoleId" parameterType="int" resultType="int">
+        SELECT auth.dbid FROM role,auth,role_auth WHERE role_auth.roleId=role.dbid AND role_auth.authId = auth.dbid AND role.dbid = #{roleId}
+    </select>
+
+     <resultMap id="mapResultMap" type="map">
+        <id property="id" column="id"/>
+         <result property="text" column="text"/>
+         <collection property="children" ofType="map" select="getAllAuth" column="id">
+         </collection>
+     </resultMap>
+    <select id="getAllAuth" resultMap="mapResultMap" parameterType="int">
+        SELECT dbid id,authName text FROM auth WHERE valid = 1 and parentId= #{dbid};
+    </select>
+    <delete id="doDeleteRole" parameterType="int">
+        DELETE FROM role_auth WHERE roleId=#{roleId}
+    </delete>
+    <insert id="InsertRole" parameterType="list">
+        INSERT INTO role_auth (roleId,authId) VALUES
+        <foreach collection="list" item="row" separator=",">
+            (#{row.roleId},#{row.authId})
+        </foreach>
+    </insert>
+</mapper>

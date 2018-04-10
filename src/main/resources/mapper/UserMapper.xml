@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwua.ssm.dao.UserMapper">
+    <select id="query" parameterType="map" resultType="user">
+        SELECT * FROM user WHERE 1=1
+        <if test="userName !=null">
+            AND userName LIKE concat(concat('%',#{userName}),'%')
+        </if>
+        <if test="roleCode !=null">
+            AND realName LIKE concat(concat('%',#{realName}),'%')
+        </if>
+        <if test="valid !=null">
+            AND valid=#{valid}
+        </if>
+        <if test="row != null&amp;&amp;start != null">
+            LIMIT #{row},#{start}
+        </if>
+    </select>
+    <select id="getCount" parameterType="map" resultType="int">
+        SELECT COUNT(dbid) FROM user WHERE 1=1
+        <if test="userName !=null">
+            AND userName LIKE concat(concat('%',#{userName}),'%')
+        </if>
+        <if test="realName!=null">
+            AND realName LIKE concat(concat('%',#{realName}),'%')
+        </if>
+        <if test="valid!=null">
+            AND valid =#{valid}
+        </if>
+    </select>
+    <insert id="doInsert" parameterType="user">
+        INSERT INTO user (userName,password,realName,valid) VALUES (#{userName},#{password},#{realName},#{valid})
+    </insert>
+    <update id="doUpdate" parameterType="user">
+        UPDATE user SET userName=#{userName},password=#{password},realName=#{realName},valid=#{valid} WHERE dbid=#{dbid}
+    </update>
+
+    <select id="queryByUserId" parameterType="int" resultType="int">
+        SELECT role.dbid FROM user,role,user_role WHERE user_role.userId=user.dbid AND user_role.roleId = role.dbid AND user.dbid = #{userId}
+    </select>
+
+    <select id="getAllrole" resultType="map" parameterType="int">
+        SELECT dbid,roleName,roleCode FROM role WHERE valid = 1
+    </select>
+    <delete id="doDeleteUser" parameterType="int">
+        DELETE FROM user_role WHERE userId=#{userId}
+    </delete>
+    <insert id="InsertUser" parameterType="list">
+        INSERT INTO user_role (userId,roleId) VALUES
+        <foreach collection="list" item="row" separator=",">
+            (#{row.userId},#{row.roleId})
+        </foreach>
+    </insert>
+    <select id="login" resultType="user">
+        SELECT * FROM user WHERE userName=#{arg0} AND password=#{arg1}
+    </select>
+</mapper>
